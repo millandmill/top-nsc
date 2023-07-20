@@ -1,0 +1,164 @@
+<?php defined('BASEPATH') OR exit('No direct script access allowed');
+
+class product_stock extends CI_Controller {
+
+	public function product()
+	{
+		$this->load->library("pagination");
+		$this->load->model('mol_product');
+		$arr['user_id'] = $this->session->userdata('user_id');
+		$config = array();
+        $config["base_url"] = base_url() . "product_stock/product";
+        $config["total_rows"] = $this->mol_product->getRecord_all($arr);
+        $config["per_page"] = 20;
+        $arr['per_page'] = $config["per_page"];
+        $config["uri_segment"] = 3;
+        $choice = $config["total_rows"] / $config["per_page"];
+    	$config["num_links"] = round($choice);
+
+        $this->pagination->initialize($config);
+
+        $arr['page'] = ($this->uri->segment(3)) ? $this->uri->segment(3) : 0;
+        $data["links"] = $this->pagination->create_links();
+        $data["product"] = $this->mol_product->getProduct($arr);
+		if(isset($_POST['btn_search'])){
+			$id['user_id'] = $this->session->userdata('user_id');
+			$id['search'] = $_POST['search_query'];
+			$data['search'] = $this->mol_product->searchProduct($id);
+			if(!isset($data['search'])){
+				$data['search'] = "Not found.";
+			}
+		}
+		$this->load->view('template/header/header');
+		$this->load->view('template/menuleft/menuleft');
+		$this->load->view('product', $data);
+	}
+
+	public function add_product()
+	{
+		$this->load->model('mol_product');
+		$data['blank'] = "";
+		if(isset($_POST['btn_submit'])){
+			$insert = array(
+					'product_company_id' => $_POST['product_company_id'],
+					'product_name' => $_POST['product_name'],
+					'product_type' => $_POST['product_type'],
+					'status_id' => $_POST['product_status'],
+					'product_gen' => $_POST['product_gen'],
+					'product_exp' => $_POST['product_exp'],
+					'product_price' => $_POST['product_price'],
+					'user_id' => $this->session->userdata('user_id')
+				);
+			$this->form_validation->set_rules('product_company_id', 'Product Company ID', 'callback_check_product['.$insert["product_name"].','.$insert["product_type"]
+				.','.$insert["product_price"].','.$insert["status_id"].']');
+
+			if($this->form_validation->run() == FALSE){
+
+			}else{
+				if(isset($_POST['product_id']) && trim($_POST['product_id']) != ''){
+					$chk_com_id = $_POST['product_company_id_2'];
+					$this->mol_product->updateProduct($insert, $chk_com_id);
+				}else{
+					if(isset($_POST['product_count'])){
+						$count = $_POST['product_count'];
+						for($i=0; $i<$count; $i++){
+							$this->mol_product->insertProduct($insert);
+						}
+					}else{
+						$this->mol_product->insertProduct($insert);
+					}
+				}
+				redirect('product_stock/product');
+			}
+		}else if(isset($_POST['btn_back'])){
+			redirect('product_stock/product');
+		}
+
+		if(isset($_GET['p_id'])){
+			$arr['product_id'] = $_GET['p_id'];
+			$data['product_edit'] = $this->mol_product->getProduct($arr);
+		}
+
+		$this->load->view('template/header/header');
+		$this->load->view('template/menuleft/menuleft');
+		$this->load->view('product_add', $data);
+	}
+
+	public function check_product($id, $data)
+	{
+		$this->load->model('mol_product');
+		$chk = $_POST['product_company_id_2'];
+		$data = preg_split('/,/', $data);
+	    $name = $data[0];
+	    $type = $data[1];
+	    $price = $data[2];
+	    $status = $data[3];
+	    if($id == ""){
+	    	$this->form_validation->set_message('check_product', 'The Product ID field is required.');
+			return false;
+	    }else if($name == ""){
+	    	$this->form_validation->set_message('check_product', 'The Product name field is required.');
+			return false;
+	    }else if($type == ""){
+	    	$this->form_validation->set_message('check_product', 'The Product type field is required.');
+			return false;
+	    }else if($status == ""){
+	    	$this->form_validation->set_message('check_product', 'The Product status field is required.');
+			return false;
+	    }else if(!preg_match('/[0-9]/', $price)){
+	    	$this->form_validation->set_message('check_product', 'The Product price must be number only.');
+			return false;
+	    }else{
+	    	$user_id = $this->session->userdata('user_id');
+	    	$result = $this->mol_product->checkProduct($id, $user_id);
+	    	if($result != null){
+	    		if(isset($_POST['product_id']) && trim($_POST['product_id']) != ''){
+					if($id == $chk){
+						return true;
+					}else{
+						$this->form_validation->set_message('check_product', 'The Product ID field is already.');
+						return false;
+					}
+				}
+				$this->form_validation->set_message('check_product', 'The Product ID field is already.');
+				return false;
+			}else{
+				return true;
+			}
+	    }
+	}
+
+	public function product_count()
+	{
+		$data['blank'] = '';
+		$this->load->model('mol_product');
+		if(isset($_POST['btn_submit'])){
+			$insert = array(
+					'product_company_id' => $_POST['product_company_id'],
+					'product_name' => $_POST['product_name'],
+					'product_type' => $_POST['product_type'],
+					'status_id' => 1,
+					'product_gen' => $_POST['product_gen'],
+					'product_exp' => $_POST['product_exp'],
+					'product_price' => $_POST['product_price'],
+					'user_id' => $_POST['user_id']
+				);
+			$count_product = $_POST['product_count'];
+			for($i=0; $i<$count_product; $i++){
+				$this->mol_product->insertProduct($insert);
+			}
+			redirect('product_stock/product');
+		}
+		
+		if(isset($_GET['p_id'])){
+			$send['user_id'] = $this->session->userdata('user_id');
+			$send['product_id'] = $_GET['p_id'];
+			$data['product_count'] = $this->mol_product->countProduct($send);
+		}
+		$this->load->view('template/header/header');
+		$this->load->view('template/menuleft/menuleft');
+		$this->load->view('product_count', $data);
+	}
+}
+
+?>

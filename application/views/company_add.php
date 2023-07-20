@@ -1,0 +1,84 @@
+<?php
+	if($this->session->userdata('user_id') == ""){ redirect('welcome/logout'); }
+	
+	if(isset($company_edit)){
+		$resultData = $company_edit;
+	}
+	
+?>
+
+		    <div class="col-xs-12 col-lg-9 col-sm-7 col-md-7">
+		        <div class="content">
+		            <div class="panel panel-warning">
+		                <div class="panel-heading">
+		                    <div class="pull-left">
+		                        <div style="font-size:1.6em;margin-top:6px;">
+		                            <i class="fa fa-cubes"></i>&nbsp;ข้อมูลบริษัท
+		                        </div>
+		                    </div>
+		                    <div class="clearfix"></div>
+		                </div>
+		                <div class="panel-body">
+		                  	<div class="row">
+			                    <div class="col-md-12"> 
+			                        <form method="POST" name="form_authen" action="add_company" enctype="multipart/form-data">
+			                            <div class="form-addproduct">
+			                                <ul>
+			                                	<li><input type="hidden" name="company_id" value="<?php if(isset($resultData[0]['company_id'])){ echo $resultData[0]['company_id']; } ?>"/></li>
+								                <li><span class="font12">ชื่อบริษัท</span></li>
+								                <li><input class="form-control" type="text" name="name" value="<?php if(isset($resultData[0]['company_name'])){ echo $resultData[0]['company_name']; } ?>" maxlength="250"/></li><br/>
+								                <li><span class="font12">ที่อยู่</span></li>
+								                <li><input class="form-control" type="text" name="address" value="<?php if(isset($resultData[0]['company_address'])){ echo $resultData[0]['company_address']; } ?>" maxlength="100"/></li><br/>
+								                <li><span class="font12">อาคาร</span></li>
+								                <li><input class="form-control" type="text" name="building" value="<?php if(isset($resultData[0]['company_building'])){ echo $resultData[0]['company_building']; } ?>" maxlength="100"/></li><br/>
+								                <li><span class="font12">ชั้น</span></li>
+								                <li><input class="form-control" type="text" name="floor" value="<?php if(isset($resultData[0]['company_floor'])){ echo $resultData[0]['company_floor']; } ?>" maxlength="100"/></li><br/>
+								                <li><span class="font12">ถนน</span></li>
+								                <li><input class="form-control" type="text" name="road" value="<?php if(isset($resultData[0]['company_road'])){ echo $resultData[0]['company_road']; } ?>" maxlength="100"/></li><br/>
+								                <li><span class="font12">ตำบล/แขวง</span></li>
+								                <li><input class="form-control" type="text" name="district" value="<?php if(isset($resultData[0]['company_district'])){ echo $resultData[0]['company_district']; } ?>" maxlength="100"/></li><br/>
+								                <li><span class="font12">เขต/อำเภอ</span></li>
+								                <li><input class="form-control" type="text" name="county" value="<?php if(isset($resultData[0]['company_county'])){ echo $resultData[0]['company_county']; } ?>" maxlength="100"/></li><br/>
+								                <li class="text-left"><span class="font12">จังหวัด</span></li>
+								                <li>
+								                    <select name="sltprovince" class="slt">
+								                        <option value="">----- กรุณาเลือก -----</option>
+								                        <?php foreach ($forProvince as $key => $value) { ?>
+								                        	<option value="<?php echo $forProvince[$key]['province_name']; ?>" <?php if(isset($resultData[0]['company_province'])){ if($resultData[0]['company_province'] == $forProvince[$key]['province_name']){ echo "selected"; } } ?>><?php echo $forProvince[$key]['province_name']; ?></option>
+								                        <?php } ?>
+								                    </select>
+								                </li><br/>
+								                <li><span class="font12">รหัสไปรษณีย์</span></li>
+								                <li><input class="form-control" type="text" name="zip" maxlength="5" value="<?php if(isset($resultData[0]['company_zip'])){ echo $resultData[0]['company_zip']; } ?>"/></li><br/>
+								                <li><span class="font12">เบอร์โทรศัพท์</span></li>
+								                <li><input class="form-control" type="text" name="tel" maxlength="16" value="<?php if(isset($resultData[0]['company_tel'])){ echo $resultData[0]['company_tel']; } ?>"/></li><br/>
+								                <li><span class="font12">FAX</span></li>
+								                <li><input class="form-control" type="text" name="fax" maxlength="16" value="<?php if(isset($resultData[0]['company_fax'])){ echo $resultData[0]['company_fax']; } ?>"/></li><br/>
+								                <li><span class="font12">เลขประจำตัวผู้เสียภาษี</span></li>
+								                <li><input class="form-control" type="text" name="tax" maxlength="13" value="<?php if(isset($resultData[0]['company_tax_code'])){ echo $resultData[0]['company_tax_code']; } ?>"/></li><br/>
+								                <li><span class="font12">Logo</span></li>
+								                <li><img id="img_company" src="#" alt="no image" width="120px" height="120px"/></li><br/>
+                                                                                <li><input type="file" name="image" accept="image/*" value="<?php if(isset($resultData[0]['company_logo'])){ echo $resultData[0]['company_logo']; } ?>" onchange="previewImg(this);"/><li><br />
+                                                                               	<li><div style="color: red;">***** รูปต้องมีขนาดไม่เกิน 2 MB *****</div></li>
+								                <li><div class="h20"></div></li>
+								                <?php if(validation_errors() != ''){ ?>
+								                    <div class="alert alert-danger">
+								                        <span class="font12"><?php echo validation_errors(); ?></span>
+								                    </div>
+								                <?php } ?>
+								                <li><input type="submit" value="บันทึก" class="bt-submit" name="btn_submit"/>
+								                    <input type="reset" value="ยกเลิก" class="bt-reset" name="btn_back" /> 
+								                </li>
+								            </ul>
+			                            </div>
+			                        </form>   
+			                    </div>
+		                  	</div><!-- class = row -->
+		                </div>
+		            </div>
+		        </div><!-- end content -->
+		    </div><!-- end col-xs-12 -->
+		</div>
+	</div>
+</body>
+</html>

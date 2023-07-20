@@ -1,0 +1,117 @@
+<?php defined('BASEPATH') OR exit('No direct script access allowed');
+
+class customer extends CI_Controller {
+
+	public function customer_detail()
+	{
+		$this->load->library("pagination");
+		$this->load->model('mol_customer');
+		$id['user_id'] = $this->session->userdata('user_id');
+		$config = array();
+        $config["base_url"] = base_url() . "customer/customer_detail";
+        $config["total_rows"] = $this->mol_customer->getRecord_all($id);
+        $config["per_page"] = 20;
+        $config["uri_segment"] = 3;
+        $choice = $config["total_rows"] / $config["per_page"];
+    	$config["num_links"] = round($choice);
+
+        $this->pagination->initialize($config);
+
+        $page = ($this->uri->segment(3)) ? $this->uri->segment(3) : 0;
+        $data["links"] = $this->pagination->create_links();
+        $id['per_page'] = $config["per_page"];
+        $id['page'] = $page;
+		$data['customer'] = $this->mol_customer->getCustomer($id);
+		if(isset($_POST['btn_search'])){
+			$id['search'] = $_POST['search_query'];
+			$data['search'] = $this->mol_customer->searchCustomer($id);
+			if(!isset($data['search'])){
+				$data['search'] = "Not found.";
+			}
+		}
+		$this->load->view('template/header/header');
+		$this->load->view('template/menuleft/menuleft');
+		$this->load->view('customer', $data);
+	}
+
+	public function customer_add()
+	{
+		$this->load->model('mol_customer');
+		$data['blank'] = '';
+		if(isset($_POST['btn_submit'])){
+			$insert = array(
+					'customer_name' => $_POST['name'],
+					'customer_address' => $_POST['address'],
+					'customer_district' => $_POST['district'],
+					'customer_county' => $_POST['county'],
+					'customer_road' => $_POST['road'],
+					'customer_building' => $_POST['building'],
+					'customer_floor' => $_POST['floor'],
+					'customer_province' => $_POST['sltprovince'],
+					'customer_zip' => $_POST['zip'],
+					'customer_tel' => $_POST['tel'],
+					'customer_fax' => $_POST['fax'],
+					'customer_email' => $_POST['e-mail'],
+					'customer_tax_code' => $_POST['tax'],
+					'user_id' => $this->session->userdata('user_id')
+				);
+			/*$this->form_validation->set_rules('name', 'Customer name', 'callback_check_customer['.$insert["customer_address"].','.$insert["customer_district"].','.$insert["customer_county"].','.
+				$insert["customer_province"].','.$insert["customer_zip"].','.$insert["customer_tel"].','.$insert["customer_fax"].','.$insert["customer_email"].','.$insert["customer_tax_code"].']');
+			if($this->form_validation->run() == FALSE){
+
+			}else{*/
+				if(isset($_POST['customer_id']) && trim($_POST['customer_id']) != ''){
+					$insert['customer_id'] = $_POST['customer_id'];
+					$this->mol_customer->updateCustomer($insert);
+				}else{
+					$this->mol_customer->insertCustomer($insert);
+					//$this->session->set_userdata('customer_id', $customer_id);
+				}
+				redirect('customer/customer_detail');
+			//}
+		}else if(isset($_POST['btn_back'])){
+			redirect('customer/customer_detail');
+		}
+
+		if(isset($_GET['c_id'])){
+			$id['customer_id'] = $_GET['c_id'];
+			$data['edt_customer'] = $this->mol_customer->getCustomer($id);
+		}
+
+		$data['forProvince'] = $this->mol_customer->getProvince();
+		$this->load->view('template/header/header');
+		$this->load->view('template/menuleft/menuleft');
+		$this->load->view('customer_add', $data);
+	}
+
+	/*public function check_customer($name, $data)
+	{
+		$data = preg_split('/,/', $data);
+	    $address = $data[0];
+	    $district = $data[1];
+	    $county = $data[2];
+	    $province = $data[3];
+	    $zip = $data[4];
+	    $tel = $data[5];
+	    $fax = $data[6];
+	    $email = $data[7];
+	    $tax = $data[8];
+		if(!preg_match('/[0-9]{5}/', $zip)){
+			$this->form_validation->set_message('check_customer', 'The Zip field must be number and 5 characters only.');
+			return false;
+		}else if(!preg_match('/[0-9]{9,10}/', $tel)){
+			$this->form_validation->set_message('check_customer', 'The Telephone number must be number and 9-10 characters only.');
+			return false;
+		}else if(!preg_match('/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,})$/', $email)){
+			$this->form_validation->set_message('check_customer', 'The Telephone number must be number and 9-10 characters only.');
+			return false;
+		}else if(!preg_match('/[0-9]{13}/', $tax)){
+			$this->form_validation->set_message('check_customer', 'The Tax ID must be number and 13 characters only.');
+			return false;
+		}else{
+			return true;
+		}
+	}*/
+}
+
+?>
